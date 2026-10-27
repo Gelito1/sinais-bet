@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinais VIP de Apostas</title>
+    <!-- Manifesto embutido para suporte a PWA / App Nativo -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+        %22name%22: %22Sinais VIP%22,
+        %22short_name%22: %22Sinais%22,
+        %22start_url%22: %22.%22,
+        %22display%22: %22standalone%22,
+        %22background_color%22: %22%230d1117%22,
+        %22theme_color%22: %22%23238636%22,
+        %22icons%22: [{
+            %22src%22: %22https://cdn-icons-png.flaticon.com/512/1828/1828884.png%22,
+            %22sizes%22: %22512x512%22,
+            %22type%22: %22image/png%22
+        }]
+    }">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --accent-green: #238636;
+            --accent-green-hover: #2ea043;
+            --accent-gold: #f1e05a;
+            --accent-blue: #1f6feb;
+            --accent-blue-hover: #388bfd;
+            --text-color: #c9d1d9;
+            --text-heading: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+            background-color: var(--card-bg);
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 32px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: rgba(35, 134, 54, 0.15);
+            color: #3fb950;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(63, 185, 80, 0.3);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            color: var(--text-heading);
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            font-size: 0.9rem;
+            color: #8b949e;
+            margin-bottom: 24px;
+        }
+
+        .signal-box {
+            background-color: #0d1117;
+            border: 2px dashed #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: border-color 0.3s;
+        }
+
+        .signal-box.active-signal {
+            border-style: solid;
+            border-color: #3fb950;
+            background-color: rgba(35, 134, 54, 0.05);
+        }
+
+        .signal-placeholder {
+            color: #8b949e;
+            font-size: 0.95rem;
+        }
+
+        .signal-data {
+            display: none;
+            width: 100%;
+        }
+
+        .signal-title {
+            color: #3fb950;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .signal-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--text-heading);
+            margin-bottom: 6px;
+        }
+
+        .signal-timer {
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-green);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-green-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--accent-blue-hover);
+        }
+
+        .status-bar {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #8b949e;
+            display: none;
+        }
+
+        .status-bar.active {
+            display: block;
+            color: #3fb950;
+        }
+
+        /* Modal de Aviso de Conta */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background-color: var(--card-bg);
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 28px 20px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-title {
+            color: var(--text-heading);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .modal-text {
+            font-size: 0.95rem;
+            color: #8b949e;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #8b949e;
+            font-size: 0.85rem;
+            margin-top: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <span class="badge">● Robô de Sinais VIP</span>
+        <h1>Sinais em Tempo Real</h1>
+        <p class="subtitle">Receba notificações automáticas a cada 1 minuto</p>
+
+        <!-- Caixa do Sinal -->
+        <div class="signal-box" id="signalBox">
+            <div class="signal-placeholder" id="signalPlaceholder">
+                Clique em <b>Gerar Sinais</b> para ativar o robô automático.
+            </div>
+
+            <div class="signal-data" id="signalData">
+                <div class="signal-title">🚀 SINAL CONFIRMADO</div>
+                <div class="signal-value" id="signalValue">Sair em: 2.15x</div>
+                <div class="signal-timer" id="signalTimer">Próximo sinal em: 60s</div>
+            </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="handleGenerateSignal()">⚡ Gerar Sinais</button>
+            <a href="https://go.aff.nicebetpartners.com/3r7xinrq" target="_blank" onclick="registerClick()" class="btn btn-secondary">🔗 Criar Conta</a>
+        </div>
+
+        <div class="status-bar" id="statusBar">
+            🟢 Envio de sinais ativo por Notificação Push (a cada 1 min)
+        </div>
+    </div>
+
+    <!-- Modal para Exigir Registo -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">⚠️</div>
+            <h2 class="modal-title">Conta Obrigatória</h2>
+            <p class="modal-text">Para ter acesso aos sinais e receber notificações automáticas, deve primeiro criar a sua conta na plataforma parceira.</p>
+            
+            <a href="https://go.aff.nicebetpartners.com/3r7xinrq" target="_blank" onclick="registerClick()" class="btn btn-secondary" style="display: block;">🚀 Criar Conta Agora</a>
+            
+            <button class="close-modal" onclick="closeModal()">Já criei minha conta</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7a7EVFzwqFi2BLKl49bv4HLIFmxsyHIk",
+            authDomain: "affiliate-recruiter-71b84.firebaseapp.com",
+            projectId: "affiliate-recruiter-71b84",
+            storageBucket: "affiliate-recruiter-71b84.firebasestorage.app",
+            messagingSenderId: "473254947460",
+            appId: "1:473254947460:web:063e24304819901ac5b0d1",
+            measurementId: "G-Z3V6LNWLM9"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+        const VAPID_KEY = "BMwS_Tc2fUKSWuRWyknmzztXcil5wi9L_zAxr69-EQlJ4Vu1C0YR1Q97Wda3Be36uYpJj7KqLHsndmZWxkgZ9lY";
+
+        let swRegistration = null;
+        let hasCreatedAccount = localStorage.getItem('hasCreatedAccount') === 'true';
+        let signalInterval = null;
+        let countdownInterval = null;
+        let secondsLeft = 60;
+
+        // Registo automático de Service Worker para notificações nativas
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('push', function(event) {
+                    const data = event.data ? event.data.json() : {};
+                    const title = data.title || 'Sinais VIP';
+                    const options = {
+                        body: data.body || 'Novo sinal disponível!',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1828/1828884.png',
+                        badge: 'https://cdn-icons-png.flaticon.com/512/1828/1828884.png',
+                        vibrate: [200, 100, 200]
+                    };
+                    event.waitUntil(self.registration.showNotification(title, options));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            
+            navigator.serviceWorker.register(swUrl).then(reg => {
+                swRegistration = reg;
+            }).catch(err => console.log('Service Worker erro:', err));
+        }
+
+        function registerClick() {
+            localStorage.setItem('hasCreatedAccount', 'true');
+            hasCreatedAccount = true;
+            closeModal();
+        }
+
+        // Função ao clicar em Gerar Sinais
+        async function handleGenerateSignal() {
+            // VERIFICAÇÃO ESTRCTA: Se não criou conta, bloqueia imediatamente e abre o modal
+            if (!hasCreatedAccount) {
+                openModal();
+                return;
+            }
+
+            // Se já criou conta, solicita a permissão nativa de notificações imediatamente
+            if ("Notification" in window && Notification.permission === "default") {
+                try {
+                    await Notification.requestPermission();
+                } catch (e) {
+                    console.error("Erro na permissão:", e);
+                }
+            }
+
+            // Gerar FCM Token
+            try {
+                const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+                console.log("FCM Token:", token);
+            } catch (err) {
+                console.warn("Aviso FCM:", err);
+            }
+
+            // Dispara notificação nativa de confirmação
+            sendNativeNotification("Sinais VIP Ativados 🚀", "Receberá novos sinais nativos a cada 1 minuto.");
+
+            startSignalEngine();
+        }
+
+        function startSignalEngine() {
+            document.getElementById('signalPlaceholder').style.display = 'none';
+            document.getElementById('signalData').style.display = 'block';
+            document.getElementById('signalBox').classList.add('active-signal');
+            document.getElementById('statusBar').classList.add('active');
+
+            generateNewSignal();
+
+            if (signalInterval) clearInterval(signalInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            secondsLeft = 60;
+            countdownInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft <= 0) secondsLeft = 60;
+                document.getElementById('signalTimer').innerText = `Próximo sinal em: ${secondsLeft}s`;
+            }, 1000);
+
+            // Novo sinal automático a cada 1 minuto (60.000 ms)
+            signalInterval = setInterval(() => {
+                generateNewSignal();
+            }, 60000);
+        }
+
+        function generateNewSignal() {
+            const randomOdd = (Math.random() * (4.50 - 1.50) + 1.50).toFixed(2);
+            const textSignal = `Sair em: ${randomOdd}x`;
+
+            document.getElementById('signalValue').innerText = textSignal;
+
+            sendNativeNotification("🎯 NOVO SINAL DETETADO!", `Entrada Confirmada! ${textSignal}. Faça a sua aposta agora!`);
+        }
+
+        function sendNativeNotification(title, bodyText) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                const options = {
+                    body: bodyText,
+                    icon: "https://cdn-icons-png.flaticon.com/512/1828/1828884.png",
+                    badge: "https://cdn-icons-png.flaticon.com/512/1828/1828884.png",
+                    vibrate: [200, 100, 200]
+                };
+
+                if (swRegistration && swRegistration.showNotification) {
+                    swRegistration.showNotification(title, options);
+                } else if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification(title, options);
+                    });
+                } else {
+                    new Notification(title, options);
+                }
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
